@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+accounts.json
+dashboard_accounts.json
+start.bat
+tempmail_dashboard.py
+tempmail_full.py
+tempmail_gen.py
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# API keys
+.api_key
+.api_key_*

@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TempMail Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Roboto,Arial,sans-serif;background:#f6f8fc;color:#202124;height:100vh;overflow:hidden}
+
+/* TOP BAR */
+.th{height:64px;background:#fff;border-bottom:1px solid #e0e0e0;display:flex;align-items:center;padding:0 16px;gap:12px;position:fixed;top:0;left:0;right:0;z-index:100;box-shadow:0 1px 2px rgba(0,0,20,08)}
+.menu-btn{width:48px;height:48px;border-radius:50%;border:none;background:none;cursor:pointer;font-size:22px;color:#5f6368;display:flex;align-items:center;justify-content:center}
+.menu-btn:hover{background:#f1f3f4}
+.logo{font-size:22px;color:#5f6368;display:flex;align-items:center;gap:8px}
+.logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#4285f4,#34a853);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;flex-shrink:0}
+.sb{flex:1;max-width:600px;margin:0 auto;position:relative}
+.sb input{width:100%;height:48px;background:#eaf1fb;border:none;border-radius:24px;padding:0 48px 0 20px;font-size:16px;outline:none}
+.sb input:focus{background:#fff;box-shadow:0 1px 4px rgba(0,0,20,15)}
+.ta{display:flex;align-items:center;gap:4px;margin-left:auto}
+.tb{width:40px;height:40px;border-radius:50%;border:none;background:none;cursor:pointer;font-size:18px;color:#5f6368;display:flex;align-items:center;justify-content:center;position:relative}
+.tb:hover{background:#f1f3f4}
+.tbadge{position:absolute;top:2px;right:2px;background:#d93025;color:#fff;font-size:9px;font-weight:700;padding:1px 4px;border-radius:8px;min-width:14px;text-align:center}
+
+
+/* SIDEBAR */
+.sidebar{width:260px;background:#fff;border-right:1px solid #e0e0e0;overflow-y:auto;flex-shrink:0;transition:width .3s}
+.sidebar.collapsed{width:64px}
+.sidebar.collapsed .sl,.sidebar.collapsed .ae,.sidebar.collapsed .am,.sidebar.collapsed .rb,.sidebar.collapsed .cb span:last-child{display:none}
+.sidebar.collapsed .ai{justify-content:center;padding:6px}
+.sidebar.collapsed .aa{margin:0}
+
+.cb{margin:12px;height:52px;border-radius:16px;border:none;background:#c2e7ff;color:#001d35;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:10px;padding:0 20px;width:calc(100% - 24px);box-shadow:0 1px 3px rgba(0,0,20,12)}
+.cb:hover{box-shadow:0 2px 8px rgba(0,0,20,2)}
+.sl{font-size:11px;font-weight:600;color:#5f6368;padding:8px 16px 4px;text-transform:uppercase;letter-spacing:.5px}
+
+.ai{display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;border-radius:0 24px 24px 0;margin-right:8px;position:relative}
+.ai:hover{background:#f1f3f4}
+.ai.active{background:#d3e3fd}
+.ai.active .ae{color:#001d35;font-weight:600}
+
+.aa{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:600;flex-shrink:0;position:relative}
+.aa .dot{position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;border:2px solid #fff}
+.dot.g{background:#34a853}.dot.y{background:#fbbc05}.dot.r{background:#ea4335}
+
+.ae{font-size:13px;color:#202124;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.am{font-size:11px;color:#5f6368;display:flex;align-items:center;gap:4px;margin-top:1px}
+.am .ur{background:#1a73e8;color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;min-width:14px;text-align:center}
+.am .ck{color:#1a73e8;font-size:10px;animation:bl 1s infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.3}}
+
+.rb{font-size:8px;font-weight:700;padding:1px 4px;border-radius:2px;text-transform:uppercase;letter-spacing:.3px;flex-shrink:0}
+.rl{background:#e6f4ea;color:#137333}.rm{background:#fef7e0;color:#b06000}.rh{background:#fce8e6;color:#c5221f}
+
+.aactions{display:none;gap:2px}
+.ai:hover .aactions{display:flex}
+.abtn{width:26px;height:26px;border-radius:50%;border:none;background:none;cursor:pointer;font-size:13px;color:#5f6368;display:flex;align-items:center;justify-content:center}
+.abtn:hover{background:#e8eaed}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#fff}
+
+<!-- // memo: add_loop — loadMemo -->
+.tt{flex:1;font-size:15px;font-weight:500;color:#202124;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tc{font-size:12px;color:#5f6368;margin-left:8px;flex-shrink:0}
+
+/* SWITCHER */
+.switcher{position:fixed;top:60px;right:16px;width:340px;max-height:500px;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,20,20);z-index:2000;display:none;overflow:hidden}
+.switcher.show{display:block}
+.sh{padding:12px 16px;border-bottom:1px solid #e0e0e0;font-size:14px;font-weight:500;display:flex;justify-content:space-between;align-items:center}
+.sh button{width:28px;height:28px;border-radius:50%;border:none;background:none;cursor:pointer;font-size:14px;color:#5f6368}
+.sh button:hover{background:#f1f3f4}
+.ss{padding:8px 12px}
+.ss input{width:100%;height:34px;border:1px solid #dadce0;border-radius:8px;padding:0 12px;font-size:12px;outline:none}
+.ss input:focus{border-color:#1a73e8}
+.slist{max-height:340px;overflow-y:auto}
+.si{display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;border-radius:8px}
+.si:hover{background:#f1f3f4}
+.si.active{background:#e8f0fe}
+.si-a{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600;flex-shrink:0}
+.si-i{flex:1;min-width:0}
+.si-e{font-size:12px;color:#202124;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.si-p{font-size:10px;color:#5f6368}
+.si-u{background:#1a73e8;color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;flex-shrink:0}
+
+/* EMAIL LIST */
+.elist{flex:1;overflow-y:auto}
+.ei{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid #f1f3f4;cursor:pointer}
+.ei:hover{box-shadow:inset 1px 0 0 #dadce0,inset -1px 0 0 #dadce0,0 1px 3px rgba(0,0,20,.08);z-index:1;position:relative}
+.ei.unread{background:#f2f6fc}
+.ei.unread .es{font-weight:700}
+.ecb{width:18px;height:18px;border:2px solid #5f6368;border-radius:2px;flex-shrink:0}
+.estar{color:#dadce0;font-size:16px;flex-shrink:0}
+.estar:hover{color:#f4b400}
+.esender{width:180px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
+.ec{flex:1;min-width:0}
+.es{font-size:13px;color:#202124;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.esn{font-size:12px;color:#5f6368;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.et{font-size:11px;color:#5f6368;flex-shrink:0;min-width:50px;text-align:right}
+
+/* EMAIL DETAIL */
+.ed{flex:1;overflow-y:auto;padding:20px 28px;display:none}
+.ed.show{display:block}
+.ed-s{font-size:20px;font-weight:400;color:#202124;margin-bottom:12px;line-height:1.3}
+.ed-m{display:flex;align-items:center;gap:10px;border-bottom:1px solid #e0e0e0;padding-bottom:12px;margin-bottom:16px}
+.ed-a{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:600;flex-shrink:0}
+.ed-fn{font-size:13px;font-weight:500;color:#202124}
+.ed-fe{font-size:11px;color:#5f6368}
+.ed-t{font-size:11px;color:#5f6368;margin-left:auto}
+.ed-b{font-size:13px;line-height:1.7;color:#202124;white-space:pre-wrap;word-break:break-word}
+.otp-box{text-align:center;margin:16px 0}
+.otp-box .otp-label{font-size:12px;color:#5f6368;margin-bottom:4px}
+.otp-box .otp-val{display:inline-block;background:#e8f5e9;color:#1b5e20;font-size:28px;font-weight:700;letter-spacing:6px;padding:12px 24px;border-radius:10px;border:2px solid #4caf50}
+.vl{display:inline-block;background:#e3f2fd;color:#1565c0;padding:8px 16px;border-radius:6px;text-decoration:none;font-weight:500;margin:4px 0;font-size:13px}
+
+/* EMPTY */
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#5f6368;text-align:center;padding:32px}
+.empty .ei{font-size:72px;margin-bottom:12px;opacity:.25}
+.empty h2{font-size:20px;font-weight:400;margin-bottom:6px;color:#202124}
+.empty p{font-size:13px;max-width:360px;line-height:1.5}
+.empty .emp-e{font-family:monospace;background:#f1f3f4;padding:10px 16px;border-radius:8px;margin-top:10px;font-size:12px;word-break:break-all}
+
+/* MODAL */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,20,.5);display:none;align-items:center;justify-content:center;z-index:3000}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;width:480px;max-width:90vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,20,.2)}
+.modal-hd{padding:18px 20px;border-bottom:1px solid #e0e0e0;display:flex;align-items:center;justify-content:space-between}
+.modal-hd h2{font-size:17px;font-weight:500}
+.modal-x{width:34px;height:34px;border-radius:50%;border:none;background:none;cursor:pointer;font-size:18px;color:#5f6368}
+.modal-x:hover{background:#f1f3f4}
+.modal-bd{padding:20px}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:12px;font-weight:500;color:#5f6368;margin-bottom:4px}
+.fg input,.fg select{width:100%;height:42px;border:1px solid #dadce0;border-radius:8px;padding:0 12px;font-size:13px;outline:none}
+.fg input:focus,.fg select:focus{border-color:#1a73e8}
+.fh{font-size:11px;color:#5f6368;margin-top:3px}
+.fh.g{color:#137333}.fh.b{color:#c5221f}
+.btn{height:34px;padding:0 18px;border-radius:6px;border:none;font-size:13px;font-weight:500;cursor:pointer}
+.btn-p{background:#1a73e8;color:#fff}.btn-p:hover{background:#1557b0}
+.btn-s{background:#f1f3f4;color:#5f6368}.btn-s:hover{background:#e8eaed}
+.btn-d{background:#d93025;color:#fff}.btn-d:hover{background:#b31412}
+<!-- // contrib: add_function — initContrib -->
+.btn-b{width:100%;margin-bottom:6px}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#323232;color:#fff;padding:10px 20px;border-radius:6px;font-size:13px;z-index:9999;display:none}
+.toast.show{display:block}
+
+<!-- // fixture: add_function — getFixture -->
+.otp-bd{padding:14px 18px;overflow-y:auto;max-height:480px}
+
+/* DETECTION PANEL */
+.dp{background:#fef7e0;border:1px solid #fbbc05;border-radius:10px;padding:14px 18px;margin:12px;display:none}
+.dp.show{display:block}
+.dp h3{font-size:13px;font-weight:600;margin-bottom:6px}
+.dp ul{padding-left:16px}
+.dp li{font-size:12px;padding:2px 0}
+
+/* FINGERPRINT */
+.fp{font-family:'Courier New',monospace;font-size:11px;color:#5f6368;background:#f8f9fa;border-radius:6px;padding:10px 14px;margin-top:8px}
+.fp div{padding:1px 0}
+
+/* GMAIL CONNECT */
+.gc{background:linear-gradient(135deg,#e8f0fe,#d2e3fc);border-radius:12px;padding:14px;margin:8px 12px;border:1px solid #aecbfa}
+.gc-hdr{font-size:12px;font-weight:600;color:#1a73e8;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.gc-row{margin-bottom:8px}
+.gc-row label{display:block;font-size:10px;color:#5f6368;margin-bottom:2px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.gc-row input{width:100%;height:34px;border:1px solid #dadce0;border-radius:6px;padding:0 10px;font-size:12px;outline:none;background:#fff}
+.gc-row input:focus{border-color:#1a73e8}
+.gc-btn{height:32px;padding:0 14px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:#1a73e8;color:#fff;width:100%}
+.gc-btn:hover{background:#1557b0}
+.gc-btn.dc{background:#34a853}
+.gc-btn.dc:hover{background:#2e8f49}
+.gc-st{font-size:10px;color:#34a853;margin-top:6px;font-weight:600;display:none}
+.gc-st.show{display:block}
+.gc-st.err{color:#d93025}
+.otp-banner{background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border:2px solid #4caf50;border-radius:12px;padding:16px;margin:8px 12px;text-align:center;display:none}
+.otp-banner.show{display:block}
+.otp-banner .otp-title{font-size:12px;color:#1b5e20;font-weight:600;margin-bottom:4px}
+.otp-banner .otp-code{display:inline-block;background:#fff;color:#1b5e20;font-size:32px;font-weight:700;letter-spacing:8px;padding:10px 20px;border-radius:8px;margin:4px 0}
+.otp-banner .otp-sub{font-size:10px;color:#5f6368;margin-top:4px}
+.otp-banner .otp-copy{height:28px;padding:0 16px;border-radius:6px;border:none;font-size:11px;font-weight:600;cursor:pointer;background:#4caf50;color:#fff;margin-top:6px}
+.otp-banner .otp-copy:hover{background:#388e3c}
+
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#dadce0;border-radius:3px}
+</style>
+</head>
+<body>
+
+<div class="th">
+    <button class="menu-btn" id="menuBtn">&#9776;</button>
+    <div class="logo"><div class="logo-icon">&#128235;</div>TempMail</div>
+    <div class="sb"><input type="text" placeholder="Search..." id="searchInp" oninput="doSearch()"></div>
+    <div class="ta">
+        <button class="tb" onclick="openModal()" title="Create">&#10133;</button>
+        <button class="tb" onclick="checkAll()" title="Refresh all">&#128260;</button>
+        <button class="tb" id="badgeBtn" title="Switch account" onclick="toggleSwitcher()">&#128196; <span class="tbadge" id="badgeCnt">0</span></button>
+    </div>
+</div>
+
+<div class="layout">
+    <div class="sidebar" id="sidebar">
+        <button class="cb" onclick="openModal()"><span>&#9998;</span><span>Create Accounts</span></button>
+
+        <!-- GMAIL CONNECT -->
+        <div class="gc" id="gcPanel">
+            <div class="gc-hdr">&#128231; Connect Real Gmail <span style="font-size:9px;background:#1a73e8;color:#fff;padding:1px 5px;border-radius:4px">OTP FETCH</span></div>
+            <div id="gcLogin">
+                <div class="gc-row"><label>Gmail Address</label><input type="email" id="gcEmail" placeholder="you@gmail.com"></div>
+                <div class="gc-row"><label>App Password <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:#1a73e8;text-decoration:none;font-size:9px">?</a></label><input type="password" id="gcPass" placeholder="xxxx xxxx xxxx xxxx"></div>
+                <button class="gc-btn" onclick="connectGmail()">Connect &amp; Fetch OTPs</button>
+            </div>
+            <div id="gcConnected" style="display:none">
+                <div class="gc-st show" id="gcStat">&#10004; Connected — Auto-fetching every 15s</div>
+                <button class="gc-btn" onclick="fetchGmailOTP()" style="margin-top:6px;background:#34a853">&#128260; Check Now</button>
+                <button class="gc-btn dc" onclick="disconnectGmail()" style="margin-top:4px;background:#d93025">Disconnect</button>
+            </div>
+        </div>
+
+<!-- // fixture: add_conditional — validateFixture -->
+        <!-- OTP BANNER -->
+        <div class="otp-banner" id="otpBanner">
+            <div class="otp-title">&#127881; OTP DETECTED</div>
+            <div class="otp-code" id="otpCode"></div>
+            <div class="otp-sub" id="otpFrom"></div>
+            <button class="otp-copy" onclick="copyOTP()">Copy OTP</button>
+        </div>
+
+        <div class="sl">Accounts</div>
+        <div id="accList"></div>
+    </div>
+    <div class="main" id="mainView"></div>
+</div>
+
+<!-- SWITCHER -->
+<div class="switcher" id="switcher">
+    <div class="sh"><span>Switch Account</span><button onclick="closeSwitcher()">&#10005;</button></div>
+    <div class="ss"><input type="text" placeholder="Search accounts..." id="swSearch" oninput="renderSwitcher()"></div>
+    <div class="slist" id="swList"></div>
+</div>
+
+<!-- OTP FETCHER PANEL -->
+<div class="otp-panel" id="otpPanel">
+    <div class="otp-hd"><span>&#128274; Gmail OTP Fetcher</span><button onclick="toggleOtpPanel()">&#10005;</button></div>
+    <div class="otp-bd">
+        <p style="font-size:11px;color:#5f6368;margin-bottom:10px">Connect your real Gmail to auto-fetch OTP codes sent to your aliases. Use an <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:#1a73e8">App Password</a> (not your real password).</p>
+        <div class="fg"><label>Gmail Address</label><input type="email" id="otpGmail" placeholder="you@gmail.com"></div>
+        <div class="fg"><label>App Password</label><input type="password" id="otpPass" placeholder="xxxx xxxx xxxx xxxx"></div>
+        <div class="fg"><label>Search last</label><select id="otpSince"><option value="5">5 min</option><option value="10" selected>10 min</option><option value="30">30 min</option><option value="60">1 hour</option></select></div>
+        <button class="btn btn-p btn-b" style="background:#1a73e8" onclick="fetchGmailOtp()">&#128269; Fetch OTP from Gmail</button>
+        <div id="otpResults" style="margin-top:12px"></div>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+    <div class="modal">
+        <div class="modal-hd"><h2>Create Accounts <span style="color:#137333;font-size:13px">(Anti-Detection)</span></h2><button class="modal-x" onclick="closeModal()">&#10005;</button></div>
+        <div class="modal-bd">
+            <div style="background:#e6f4ea;border-radius:10px;padding:14px;margin-bottom:16px">
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><b style="color:#137333;font-size:14px">&#128231; Gmail Dot/Plus Trick</b><span class="rb rl">BEST FOR GITHUB</span></div>
+                <p style="font-size:11px;color:#137333;margin:2px 0 10px">Gmail ignores dots & +aliases. GitHub cannot detect this. All go to your REAL inbox.</p>
+                <div class="fg"><label>Your Gmail</label><input type="email" id="gmailInp" placeholder="you@gmail.com"></div>
+                <div class="fg"><label>Variants count</label><input type="number" id="gmailCnt" value="25" min="1" max="200"></div>
+                <button class="btn btn-p btn-b" style="background:#137333" onclick="createGmail()">Create Gmail Variants (Undetectable)</button>
+            </div>
+            <div style="background:#fce8e6;border-radius:10px;padding:14px;margin-bottom:16px">
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><b style="color:#c5221f;font-size:14px">&#128233; Disposable Tempmails</b><span class="rb rh">GITHUB BLOCKS</span></div>
+                <p style="font-size:11px;color:#c5221f;margin:2px 0 10px">GitHub blocks these domains. Only for testing other sites.</p>
+                <div class="fg"><label>Provider</label><select id="tp"><option value="1secmail">1secmail</option><option value="guerrillamail">GuerrillaMail</option><option value="inboxkitten">InboxKitten</option><option value="all">Mix All</option></select></div>
+                <div class="fg"><label>Count</label><input type="number" id="tc" value="10" min="1" max="100"></div>
+                <button class="btn btn-p btn-b" style="background:#c5221f" onclick="createTemp()">Create Tempmails (Non-GitHub)</button>
+            </div>
+            <hr style="border:none;border-top:1px solid #e0e0e0;margin:12px 0">
+            <div style="display:flex;gap:6px;margin-bottom:8px"><button class="btn btn-s" style="flex:1" onclick="quickBulk(10)">+10</button><button class="btn btn-s" style="flex:1" onclick="quickBulk(25)">+25</button><button class="btn btn-s" style="flex:1" onclick="quickBulk(50)">+50</button></div>
+            <button class="btn btn-d btn-b" onclick="clearAll()">&#128465; Clear All</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var accounts=[], selId=null, autoIv=null;
+
+function esc(s){var d=document.createElement('div');d.textContent=String(s||'');return d.innerHTML}
+function initials(e){var l=e.split('@')[0];return l.length>=2?(l[0]+l[1]).toUpperCase():(l[0]||'?').toUpperCase()}
+function pColor(p){return {'gmail-dot':'#EA4335','1secmail':'#34A853','guerrillamail':'#FBBC05','inboxkitten':'#9C27B0'}[p]||'#58a6ff'}
+function riskClass(r){return r==='LOW'?'rl':r==='MEDIUM'?'rm':'rh'}
+
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2500)}
+
+function api(u,o){return fetch(u,Object.assign({headers:{'Content-Type':'application/json'}},o)).then(function(r){return r.json()})}
+
+function fetchAcc(){return api('/api/accounts').then(function(d){accounts=d;renderSidebar();renderMain();document.getElementById('badgeCnt').textContent=accounts.length})}
+
+function renderSidebar(){
+    var c=document.getElementById('accList');
+    if(!accounts.length){c.innerHTML='<div style="padding:12px;text-align:center;color:#5f6368;font-size:12px">No accounts yet</div>';return}
+    var h='';
+    for(var i=0;i<accounts.length;i++){
+        var a=accounts[i],act=a.id===selId?' active':'',ur=a.unread>0?'<span class="ur">'+a.unread+'</span>':'';
+        var dc=a.provider==='gmail-dot'?'r':(a.unread>0?'g':'y');
+        h+='<div class="ai'+act+'" onclick="selectAcc(\''+a.id+'\')">'+
+        '<div class="aa" style="background:'+pColor(a.provider)+'">'+esc(initials(a.email))+'<div class="dot '+dc+'"></div></div>'+
+        '<div><div class="ae">'+esc(a.email)+'</div><div class="am">'+esc(a.provider)+' '+ur+' <span class="rb '+riskClass(a.risk)+'">'+a.risk+'</span></div></div>'+
+        '<div class="aactions"><button class="abtn" onclick="event.stopPropagation();checkOne(\''+a.id+'\')" title="Check">&#128260;</button><button class="abtn" onclick="event.stopPropagation();delAcc(\''+a.id+'\')" title="Delete">&#128465;</button></div>'+
+        '</div>';
+    }
+    c.innerHTML=h;
+}
+
+function renderMain(){
+    var c=document.getElementById('mainView');
+    if(!selId){c.innerHTML='<div class="empty"><div class="ei">&#128235;</div><h2>Select an account</h2><p>Click any account in the sidebar to view its inbox</p></div>';return}
+    var acc=null;for(var i=0;i<accounts.length;i++){if(accounts[i].id===selId){acc=accounts[i];break}}
+    if(!acc){selId=null;renderMain();return}
+    var msgs=acc.messages||[],isG=acc.provider==='gmail-dot';
+    var tb='<div class="toolbar"><button class="tbtn" onclick="selId=null;renderMain()">&#8592;</button><div class="tt">'+esc(acc.email)+'</div><div class="tc">'+msgs.length+' msg(s)</div><button class="tbtn" onclick="checkOne(\''+acc.id+'\')">&#128260;</button><button class="tbtn" onclick="showFP(\''+acc.id+'\')" title="Fingerprint">&#9881;</button><button class="tbtn" onclick="copyEm(\''+acc.email+'\')">&#128203;</button></div>';
+    if(isG){c.innerHTML=tb+'<div class="empty"><div class="ei">&#128236;</div><h2>Gmail Alias</h2><p>Emails go to your REAL Gmail inbox.</p><div class="emp-e">'+esc(acc.email)+'</div><button class="btn btn-p" style="margin-top:12px" onclick="copyEm(\''+acc.email+'\')">Copy &#38; Go to GitHub</button>'+(gmailConnected?'<button class="btn btn-p" style="margin-top:8px;background:#34a853" onclick="fetchGmailOTP()">&#128260; Fetch OTP from Gmail</button>':'<div style="margin-top:8px;font-size:11px;color:#5f6368">Connect Gmail in sidebar to auto-fetch OTPs</div>')+'<div style="font-size:11px;color:#137333;margin-top:8px">&#10004; GitHub will NOT detect this</div></div>';return}
+    if(!msgs.length){c.innerHTML=tb+'<div class="empty"><div class="ei">&#128232;</div><h2>Inbox empty</h2><p>Use this email for signup, then click refresh.</p><div class="emp-e">'+esc(acc.email)+'</div><button class="btn btn-p" style="margin-top:12px" onclick="checkOne(\''+acc.id+'\')">Check Inbox</button></div>';return}
+    var list='<div class="elist">';
+    for(var i=0;i<msgs.length;i++){
+        var m=msgs[i],sub=esc(m.subject||m.title||'(no subject)'),fr=esc(m.from||m.sender||'Unknown');
+        var body=(m.body||m.bodyHtml||m.content||JSON.stringify(m));var bs=typeof body==='string'?body:JSON.stringify(body);
+        list+='<div class="ei unread" onclick="showMsg('+i+')"><div class="ecb"></div><div class="estar">&#9734;</div><div class="esender">'+fr+'</div><div class="ec"><div class="es">'+sub+'</div><div class="esn">'+esc(bs.substring(0,100))+'</div></div></div>';
+    }
+    list+='</div>';c.innerHTML=tb+list;
+}
+
+function showMsg(idx){
+    var acc=null;for(var i=0;i<accounts.length;i++){if(accounts[i].id===selId){acc=accounts[i];break}}
+    if(!acc||!acc.messages[idx])return;var m=acc.messages[idx],c=document.getElementById('mainView');
+    var sub=esc(m.subject||m.title||'(no subject)'),fr=esc(m.from||m.sender||'Unknown');
+    var body=m.body||m.bodyHtml||m.content||JSON.stringify(m);if(typeof body!=='string')body=JSON.stringify(body,null,2);
+    var om=body.match(/\b(\d{4,8})\b/g),oh='';if(om)oh='<div class="otp-box"><div class="otp-label">Verification Code</div><div class="otp-val">'+esc(om[0])+'</div><button class="btn btn-p" style="margin-top:6px;font-size:11px;height:28px" onclick="copyEm(\''+esc(om[0])+'\')">Copy OTP</button></div>';
+    var bl=esc(body).replace(/(https?:\/\/[^\s<>"'\\\\]+)/g,'<a href="$1" target="_blank" class="vl">$1</a>');
+    c.innerHTML='<div class="toolbar"><button class="tbtn" onclick="renderMain()">&#8592;</button><div class="tt">'+sub+'</div></div>'+
+    '<div class="ed show"><div class="ed-m"><div class="ed-a" style="background:'+pColor(acc.provider)+'">'+esc(initials(fr))+'</div><div><div class="ed-fn">'+fr+'</div><div class="ed-fe">to '+esc(acc.email)+'</div></div></div>'+oh+'<div class="ed-b">'+bl+'</div></div>';
+}
+
+function selectAcc(id){selId=id;renderSidebar();renderMain();closeSwitcher()}
+
+function copyEm(e){navigator.clipboard.writeText(e).then(function(){toast('Copied: '+e)})}
+
+function checkOne(id){var acc=null;for(var i=0;i<accounts.length;i++){if(accounts[i].id===id){acc=accounts[i];break}}if(!acc)return;acc.checking=true;renderSidebar();toast('Checking...');
+api('/api/check/'+id).then(function(d){var msgs=d.messages||[];acc.messages=msgs;acc.unread=msgs.length;acc.checking=false;
+api('/api/update',{method:'POST',body:JSON.stringify(acc)});toast(msgs.length?msgs.length+' message(s)!':'Empty inbox');
+renderSidebar();if(selId===id);renderMain()})['catch'](function(){acc.checking=false;renderSidebar();toast('Error')})}
+
+function checkAll(){toast('Checking all...');api('/api/check/all').then(function(d){var r=d.results||{},tot=0;
+for(var em in r){var msgs=r[em];tot+=msgs.length;for(var i=0;i<accounts.length;i++){if(accounts[i].email===em){accounts[i].messages=msgs;accounts[i].unread=msgs.length}}}
+toast('Checked — '+tot+' messages');renderSidebar();renderMain()})['catch'](function(){toast('Error')})}
+
+function delAcc(id){if(!confirm('Delete?'))return;api('/api/delete/'+id,{method:'POST'});if(selId===id)selId=null;fetchAcc()}
+function clearAll(){if(!confirm('Clear ALL?'))return;api('/api/clear',{method:'POST'});selId=null;closeModal();fetchAcc()}
+function openModal(){document.getElementById('modal').classList.add('show')}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+
+function createGmail(){var g=document.getElementById('gmailInp').value.trim();if(!g)return toast('Enter Gmail!');
+api('/api/create/gmail',{method:'POST',body:JSON.stringify({gmail:g,count:+document.getElementById('gmailCnt').value||25})}).then(function(d){toast('Created '+d.created+' variants');closeModal();fetchAcc()})['catch'](function(){toast('Error')})}
+
+function createTemp(){api('/api/create/tempmail',{method:'POST',body:JSON.stringify({provider:document.getElementById('tp').value,count:+document.getElementById('tc').value||10})}).then(function(d){toast('Created '+d.created+' tempmails');closeModal();fetchAcc()})['catch'](function(){toast('Error')})}
+
+function quickBulk(n){api('/api/create/quick',{method:'POST',body:JSON.stringify({count:n})}).then(function(d){toast('+' + d.created+' tempmails');closeModal();fetchAcc()})['catch'](function(){toast('Error')})}
+
+/* SWITCHER */
+function toggleSwitcher(){document.getElementById('switcher').classList.toggle('show');if(document.getElementById('switcher').classList.contains('show')){renderSwitcher();document.getElementById('swSearch').focus()}}
+function closeSwitcher(){document.getElementById('switcher').classList.remove('show')}
+function renderSwitcher(){var q=(document.getElementById('swSearch').value||'').toLowerCase();var h='';
+for(var i=0;i<accounts.length;i++){var a=accounts[i];if(q&&a.email.toLowerCase().indexOf(q)===-1)continue;
+var act=a.id===selId?' active':'';var ur=a.unread>0?'<span class="si-u">'+a.unread+'</span>':'';
+h+='<div class="si'+act+'" onclick="selectAcc(\''+a.id+'\')"><div class="si-a" style="background:'+pColor(a.provider)+'">'+esc(initials(a.email))+'</div><div class="si-i"><div class="si-e">'+esc(a.email)+'</div><div class="si-p">'+esc(a.provider)+'</div></div>'+ur+'</div>';
+}document.getElementById('swList').innerHTML=h||'<div style="padding:12px;text-align:center;color:#5f6368;font-size:12px">No match</div>'}
+document.addEventListener('click',function(e){var s=document.getElementById('switcher');if(!s.classList.contains('show'))return;var clickedBadge=e.target.closest('#badgeBtn');var clickedInside=e.target.closest('#switcher');if(!clickedInside&&!clickedBadge)closeSwitcher()})
+
+/* FINGERPRINT */
+function showFP(id){var acc=null;for(var i=0;i<accounts.length;i++){if(accounts[i].id===id){acc=accounts[i];break}}if(!acc||!acc.fingerprint)return toast('No fingerprint data');
+var fp=acc.fingerprint,c=document.getElementById('mainView');
+c.innerHTML='<div class="toolbar"><button class="tbtn" onclick="renderMain()">&#8592;</button><div class="tt">Browser Fingerprint</div></div>'+
+'<div style="padding:20px;overflow-y:auto;flex:1"><div style="max-width:560px;margin:0 auto">'+
+'<p style="font-size:12px;color:#5f6368;margin-bottom:12px">Use these values to appear as a different browser:</p>'+
+'<div class="fp"><div>UA: '+esc(fp.user_agent)+'</div><div>Screen: '+esc(fp.screen)+'</div><div>TZ: '+esc(fp.timezone)+'</div><div>Lang: '+esc(fp.language)+'</div><div>Platform: '+esc(fp.platform)+'</div><div>Cores: '+esc(fp.cores)+' | RAM: '+esc(fp.memory)+'GB</div></div>'+
+'<div style="margin-top:12px;background:#e6f4ea;border-radius:8px;padding:10px 14px;font-size:11px;color:#137333"><b>Tips:</b> Change UA per account, match TZ to proxy, use residential IPs, disable webdriver flag.</div>'+
+'<button class="btn btn-s" style="margin-top:12px" onclick="renderMain()">&#8592; Back</button></div></div>'}
+
+function doSearch(){var q=document.getElementById('searchInp').value.toLowerCase();var items=document.querySelectorAll('.email-item');for(var i=0;i<items.length;i++){items[i].style.display=items[i].textContent.toLowerCase().indexOf(q)!==-1?'':'none'}}
+
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed')}
+
+/* GMAIL IMAP CONNECT */
+var gmailConnected = false, gmailInterval = null, lastOtp = '';
+
+function connectGmail(){
+  var g=document.getElementById('gcEmail').value.trim();
+  var p=document.getElementById('gcPass').value.trim();
+  if(!g||!p)return toast('Enter Gmail & App Password');
+  toast('Connecting...');
+  fetch('/api/gmail/fetch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gmail:g,password:p,since:5})})
+  .then(function(res){return res.json()})
+  .then(function(d){
+    if(d.error){toast('Error: '+d.error);return}
+    gmailConnected=true;
+    document.getElementById('gcLogin').style.display='none';
+    document.getElementById('gcConnected').style.display='block';
+    document.getElementById('gcStat').className='gc-st show';
+    document.getElementById('gcStat').textContent='✓ Connected — Auto-fetching every 15s';
+    toast('Gmail connected!');
+    // Store credentials for auto-refresh (sessionStorage — cleared when tab closes)
+    sessionStorage.setItem('gcEmail',g);
+    sessionStorage.setItem('gcPass',p);
+    // Start auto-refresh
+    gmailInterval=setInterval(fetchGmailOTP,15000);
+    fetchGmailOTP();
+  }).catch(function(e){toast('Connection failed: '+e.message)})
+}
+
+function disconnectGmail(){
+  gmailConnected=false;
+  if(gmailInterval){clearInterval(gmailInterval);gmailInterval=null}
+  document.getElementById('gcLogin').style.display='block';
+  document.getElementById('gcConnected').style.display='none';
+  document.getElementById('otpBanner').classList.remove('show');
+  localStorage.removeItem('gcEmail');
+  localStorage.removeItem('gcPass');
+  sessionStorage.removeItem('gcEmail');
+  sessionStorage.removeItem('gcPass');
+  toast('Disconnected');
+}
+
+function fetchGmailOTP(){
+  var g=sessionStorage.getItem('gcEmail')||document.getElementById('gcEmail').value.trim();
+  var p=sessionStorage.getItem('gcPass')||document.getElementById('gcPass').value.trim();
+  if(!g||!p)return;
+  fetch('/api/gmail/fetch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gmail:g,password:p,since:10})})
+  .then(function(res){return res.json()})
+  .then(function(d){
+    if(d.error){
+      var st=document.getElementById('gcStat');
+      st.className='gc-st show err';
+      st.textContent='✗ '+d.error;
+      return;
+    }
+    var results=d.results||[];
+    var allOtps=[];
+    var otpEmail='';
+    for(var i=0;i<results.length;i++){
+      var m=results[i];
+      if(m.error)continue;
+      var otps=m.otps||[];
+      if(otps.length>0){allOtps=allOtps.concat(otps);otpEmail=m.subject+' — '+m.from}
+    }
+    if(allOtps.length>0){
+      var otp=allOtps[0];
+      lastOtp=otp;
+      document.getElementById('otpCode').textContent=otp;
+      document.getElementById('otpFrom').textContent=otpEmail;
+      document.getElementById('otpBanner').classList.add('show');
+      toast('OTP Found: '+otp);
+    }
+    var st=document.getElementById('gcStat');
+    st.className='gc-st show';
+    st.textContent='✓ Connected — Last check: '+new Date().toLocaleTimeString();
+  }).catch(function(){})
+}
+
+function copyOTP(){
+  if(lastOtp)copyEm(lastOtp);
+}
+
+/* Auto-reconnect on load */
+(function(){
+  var g=sessionStorage.getItem('gcEmail');
+  var p=sessionStorage.getItem('gcPass');
+  if(g&&p){
+    document.getElementById('gcEmail').value=g;
+    document.getElementById('gcPass').value=p;
+    connectGmail();
+  }
+})();
+
+/* INIT */
+fetchAcc();
+</script>
+</body>
+</html>
+<!-- // test: add_function — setupTest -->
+<!-- // split: add_constant — buildSplit -->
+<!-- // readme: add_conditional — fetchReadme -->
+<!-- // perm: add_conditional — handlePerm -->
+<!-- // effect: add_constant — initEffect -->
+<!-- // style: add_conditional — syncStyle -->
+<!-- // hook: add_function — setHook -->
+<!-- // auth: add_function — formatAuth -->
+<!-- // stream: add_function — initStream -->
+<!-- // merge: add_constant — setMerge -->
+<!-- // stub: add_constant — transformStub -->
+<!-- // deserialize: add_conditional — processDeserialize -->
+<!-- // timeout: add_conditional — checkTimeout -->
+<!-- // map: add_function — checkMap -->
+<!-- // buffer: add_function — processBuffer -->
+<!-- // handle: add_function — initHandle -->
+<!-- // sub: add_function — processSub -->
+<!-- // stub: add_conditional — updateStub -->
+<!-- // spy: add_conditional — fetchSpy -->
+<!-- // join: add_conditional — validateJoin -->
+<!-- // flow: add_function — validateFlow -->
+<!-- // metric: add_constant — setMetric -->
+<!-- // route: add_function — transformRoute -->
+<!-- // mutation: add_constant — initMutation -->
+<!-- // docs: add_function — validateDocs -->
+<!-- // timeout: add_constant — setupTimeout -->
+<!-- // role: add_constant — getRole -->
+<!-- // parse: add_constant — loadParse -->
+<!-- // route: add_function — initRoute -->
+<!-- // retry: add_constant — setupRetry -->
+<!-- // docs: add_conditional — saveDocs -->
+<!-- // init: add_constant — createInit -->
+<!-- // auth: add_function — createAuth -->
+<!-- // edge: add_function — checkEdge -->
+<!-- // join: add_constant — createJoin -->
+<!-- // map: add_conditional — syncMap -->
+<!-- // active: add_function — updateActive -->
+<!-- // stub: add_function — syncStub -->
+<!-- // retry: add_conditional — initRetry -->
+<!-- // buffer: add_conditional — createBuffer -->
+<!-- // license: add_function — initLicense -->
+<!-- // log: add_conditional — buildLog -->
+<!-- // sub: add_function — updateSub -->
+<!-- // sub: add_constant — initSub -->
+<!-- // debug: add_constant — handleDebug -->
+<!-- // readme: add_function — fetchReadme -->
+<!-- // animation: add_constant — saveAnimation -->
+<!-- // flex: add_function — handleFlex -->
+<!-- // route: add_conditional — createRoute -->
+<!-- // setup: add_function — parseSetup -->
+<!-- // transition: add_constant — parseTransition -->
+<!-- // flow: add_function — createFlow -->
+<!-- // license: add_conditional — fetchLicense -->
+<!-- // buffer: add_conditional — processBuffer -->
+<!-- // join: add_constant — applyJoin -->
+<!-- // metric: add_function — saveMetric -->
+<!-- // edge: add_function — setupEdge -->
+<!-- // flex: add_function — loadFlex -->
+<!-- // license: add_function — setupLicense -->
+<!-- // effect: add_function — handleEffect -->
+<!-- // query: add_function — initQuery -->
+<!-- // fixture: add_function — saveFixture -->
+<!-- // sort: add_constant — fetchSort -->
+<!-- // edge: add_conditional — getEdge -->
+<!-- // lazy: add_constant — validateLazy -->
+<!-- // layout: add_function — parseLayout -->
+<!-- // style: add_conditional — createStyle -->
+<!-- // debug: add_constant — parseDebug -->
+<!-- // parse: add_constant — updateParse -->
+<!-- // transition: add_function — applyTransition -->
+<!-- // init: add_function — checkInit -->
+<!-- // edge: add_constant — formatEdge -->
+<!-- // contrib: add_constant — processContrib -->
+<!-- // cleanup: add_conditional — parseCleanup -->
+<!-- // transition: add_constant — handleTransition -->
+<!-- // retry: add_conditional — initRetry -->
+<!-- // hook: add_conditional — checkHook -->
+<!-- // theme: add_constant — handleTheme -->
+<!-- // timeout: add_function — handleTimeout -->
+<!-- // fallback: add_function — processFallback -->
+<!-- // log: add_function — getLog -->
+<!-- // grid: add_function — updateGrid -->
+<!-- // theme: add_conditional — buildTheme -->
+<!-- // flex: add_function — setupFlex -->
+<!-- // map: add_conditional — handleMap -->
+<!-- // readme: add_constant — loadReadme -->
+<!-- // test: add_function — transformTest -->
+<!-- // audit: add_constant — handleAudit -->
+<!-- // split: add_conditional — setSplit -->
+<!-- // handle: add_conditional — saveHandle -->
+<!-- // compress: add_constant — setupCompress -->
+<!-- // role: add_function — handleRole -->
+<!-- // active: add_constant — validateActive -->
+<!-- // flow: add_function — saveFlow -->
+<!-- // merge: add_function — fetchMerge -->
+<!-- // cleanup: add_conditional — syncCleanup -->
+<!-- // debug: add_conditional — transformDebug -->
+<!-- // stream: add_conditional — processStream -->
+<!-- // token: add_conditional — applyToken -->
+<!-- // map: add_function — getMap -->
+<!-- // handle: add_conditional — getHandle -->
+<!-- // flex: add_function — formatFlex -->
+<!-- // readme: add_constant — initReadme -->
+<!-- // timeout: add_conditional — createTimeout -->
+<!-- // changelog: add_conditional — transformChangelog -->
+<!-- // check: add_constant — setupCheck -->
+<!-- // batch: add_function — createBatch -->
+<!-- // grid: add_function — handleGrid -->
+<!-- // mutation: add_conditional — saveMutation -->
+<!-- // edge: add_conditional — applyEdge -->
+<!-- // encode: add_conditional — saveEncode -->
+<!-- // layout: add_constant — setLayout -->
+<!-- // role: add_constant — handleRole -->
+<!-- // stream: add_constant — updateStream -->
+<!-- // animation: add_conditional — createAnimation -->
+<!-- // audit: add_constant — syncAudit -->
+<!-- // hook: add_conditional — setupHook -->
+<!-- // sort: add_conditional — initSort -->
+<!-- // compress: add_function — parseCompress -->
+<!-- // test: add_constant — fetchTest -->
+<!-- // filter: add_constant — syncFilter -->
+<!-- // auth: add_function — parseAuth -->
+<!-- // docs: add_conditional — syncDocs -->
+<!-- // theme: add_constant — processTheme -->
+<!-- // animation: add_conditional — transformAnimation -->
+<!-- // transition: add_constant — validateTransition -->
+<!-- // cleanup: add_constant — transformCleanup -->
+<!-- // flow: add_function — initFlow -->
+<!-- // hover: add_conditional — validateHover -->
+<!-- // auth: add_function — fetchAuth -->
+<!-- // ref: add_function — saveRef -->
+<!-- // init: add_function — applyInit -->
+<!-- // session: add_constant — syncSession -->
+<!-- // perm: add_function — getPerm -->
+<!-- // flex: add_conditional — checkFlex -->
+<!-- // stream: add_constant — createStream -->
+<!-- // focus: add_constant — validateFocus -->
+<!-- // test: add_conditional — validateTest -->
+<!-- // split: add_function — fetchSplit -->
+<!-- // pub: add_function — parsePub -->
+<!-- // fallback: add_conditional — syncFallback -->
+<!-- // memo: add_conditional — handleMemo -->
+<!-- // fallback: add_conditional — applyFallback -->
+<!-- // effect: add_function — syncEffect -->
+<!-- // hover: add_conditional — transformHover -->
+<!-- // logic: add_constant — setupLogic -->
+<!-- // lazy: add_function — syncLazy -->
+<!-- // logic: add_function — loadLogic -->
+<!-- // fixture: add_function — handleFixture -->
+<!-- // docs: add_conditional — loadDocs -->
+<!-- // log: add_conditional — handleLog -->
+<!-- // guard: add_conditional — buildGuard -->
+<!-- // transition: add_constant — loadTransition -->
+<!-- // query: add_function — formatQuery -->
+<!-- // merge: add_conditional — syncMerge -->
+<!-- // batch: add_function — saveBatch -->
+<!-- // handle: add_constant — getHandle -->
+<!-- // timeout: add_constant — updateTimeout -->
+<!-- // transition: add_constant — syncTransition -->
+<!-- // debug: add_conditional — setDebug -->
+<!-- // render: add_function — syncRender -->
+<!-- // changelog: add_conditional — setupChangelog -->
+<!-- // retry: add_constant — setRetry -->
+<!-- // memo: add_function — applyMemo -->
+<!-- // init: add_constant — syncInit -->
+<!-- // timeout: add_constant — transformTimeout -->
+<!-- // flow: add_function — handleFlow -->
+<!-- // flow: add_constant — initFlow -->
+<!-- // encode: add_conditional — formatEncode -->
+<!-- // decode: add_conditional — updateDecode -->
+<!-- // debug: add_function — validateDebug -->
+<!-- // render: add_conditional — buildRender -->
+<!-- // render: add_function — createRender -->
+<!-- // stub: add_function — formatStub -->
+<!-- // metric: add_constant — syncMetric -->
+<!-- // lazy: add_conditional — loadLazy -->
+<!-- // context: add_constant — processContext -->
+<!-- // context: add_function — validateContext -->
+<!-- // flex: add_conditional — updateFlex -->
+<!-- // perm: add_function — formatPerm -->
+<!-- // mock: add_constant — initMock -->
+<!-- // metric: add_constant — formatMetric -->
+<!-- // buffer: add_constant — createBuffer -->
+<!-- // encode: add_conditional — fetchEncode -->
+<!-- // query: add_conditional — buildQuery -->
+<!-- // batch: add_conditional — transformBatch -->
+<!-- // map: add_function — getMap -->
+<!-- // hover: add_conditional — setHover -->
+<!-- // memo: add_constant — saveMemo -->
+<!-- // animation: add_constant — saveAnimation -->
+<!-- // decode: add_conditional — setDecode -->
+<!-- // retry: add_function — loadRetry -->
+<!-- // encode: add_function — checkEncode -->
+<!-- // changelog: add_conditional — fetchChangelog -->
+<!-- // hook: add_conditional — transformHook -->
+<!-- // format: add_conditional — handleFormat -->
+<!-- // lazy: add_function — setupLazy -->
+<!-- // render: add_conditional — formatRender -->
+<!-- // memo: add_conditional — processMemo -->
+<!-- // stub: add_conditional — setupStub -->
+<!-- // readme: add_function — checkReadme -->
+<!-- // transform: add_function — saveTransform -->
+<!-- // theme: add_function — validateTheme -->
+<!-- // decode: add_conditional — fetchDecode -->
+<!-- // query: add_conditional — syncQuery -->
+<!-- // trace: add_constant — checkTrace -->
+<!-- // readme: add_function — validateReadme -->
+<!-- // ref: add_conditional — handleRef -->
+<!-- // debug: add_conditional — handleDebug -->
+<!-- // pub: add_function — transformPub -->
+<!-- // retry: add_conditional — processRetry -->
+<!-- // test: add_function — validateTest -->
+<!-- // retry: add_constant — setupRetry -->
+<!-- // guard: add_function — createGuard -->
+<!-- // readme: add_conditional — setupReadme -->
+<!-- // serialize: add_function — buildSerialize -->
+<!-- // buffer: add_constant — applyBuffer -->
+<!-- // mock: add_constant — validateMock -->
+<!-- // audit: add_function — applyAudit -->
+<!-- // focus: add_function — parseFocus -->
+<!-- // context: add_constant — transformContext -->
+<!-- // stub: add_constant — formatStub -->
+<!-- // split: add_function — syncSplit -->
+<!-- // handle: add_constant — updateHandle -->
+<!-- // flow: add_conditional — formatFlow -->
+<!-- // flex: add_conditional — checkFlex -->
+<!-- // mock: add_conditional — formatMock -->
+<!-- // validate: add_conditional — initValidate -->
+<!-- // retry: add_constant — applyRetry -->
+<!-- // transition: add_constant — buildTransition -->
+<!-- // fixture: add_constant — processFixture -->
+<!-- // mutation: add_conditional — createMutation -->
+<!-- // grid: add_conditional — updateGrid -->
+<!-- // check: add_function — createCheck -->
+<!-- // query: add_constant — getQuery -->
+<!-- // filter: add_constant — validateFilter -->
+<!-- // docs: add_conditional — setDocs -->
+<!-- // debug: add_constant — updateDebug -->
+<!-- // timeout: add_function — parseTimeout -->
+<!-- // edge: add_function — formatEdge -->
+<!-- // license: add_function — setupLicense -->
+<!-- // auth: add_function — buildAuth -->
+<!-- // ref: add_function — updateRef -->
+<!-- // query: add_function — setupQuery -->
+<!-- // role: add_constant — setRole -->
+<!-- // fixture: add_conditional — createFixture -->
+<!-- // memo: add_constant — formatMemo -->
+<!-- // cache: add_function — transformCache -->
+<!-- // mutation: add_constant — validateMutation -->
+<!-- // fallback: add_function — checkFallback -->
+<!-- // decode: add_constant — saveDecode -->
+<!-- // sub: add_constant — handleSub -->
+<!-- // lazy: add_constant — validateLazy -->
+<!-- // theme: add_constant — setupTheme -->
+<!-- // state: add_function — applyState -->
+<!-- // transition: add_constant — saveTransition -->
+<!-- // serialize: add_conditional — validateSerialize -->
+<!-- // debug: add_constant — formatDebug -->
+<!-- // ref: add_constant — createRef -->
+<!-- // filter: add_function — fetchFilter -->
+<!-- // stub: add_constant — checkStub -->
+<!-- // readme: add_function — createReadme -->
+<!-- // readme: add_function — transformReadme -->
+<!-- // deserialize: add_constant — loadDeserialize -->
+<!-- // fallback: add_function — buildFallback -->
+<!-- // sort: add_function — formatSort -->
+<!-- // perm: add_constant — checkPerm -->
+<!-- // token: add_constant — setupToken -->
+<!-- // docs: add_function — applyDocs -->
+<!-- // debug: add_conditional — checkDebug -->
+<!-- // handle: add_conditional — createHandle -->
+<!-- // sort: add_constant — setupSort -->
+<!-- // fallback: add_function — setupFallback -->
+<!-- // guard: add_conditional — parseGuard -->
+<!-- // logic: add_function — processLogic -->
+<!-- // sub: add_function — loadSub -->
+<!-- // logic: add_conditional — setLogic -->
+<!-- // edge: add_conditional — saveEdge -->
+<!-- // transition: add_function — setupTransition -->
